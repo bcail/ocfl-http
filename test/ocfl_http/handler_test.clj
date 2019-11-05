@@ -4,15 +4,27 @@
             [ocfl-http.handler :refer :all]))
 (import '(edu.wisc.library.ocfl.core OcflRepositoryBuilder)
         '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
-        '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder))
+        '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder)
+        '(java.nio.file Files)
+        '(java.nio.file.attribute FileAttribute))
 
-(defn get-test-repo
-  [path]
+(defn get-default-tmp-dir
+  []
+  (let [tmp (System/getProperty "java.io.tmpdir")]
+    (. (clojure.java.io/as-file tmp) toPath)))
+
+(defn create-tmp-dir
+  []
+  (let [attrs (make-array FileAttribute 0)]
+    (Files/createTempDirectory "ocfl-http" attrs)))
+
+(defn create-test-repo
+  [repoRootPath]
   (let [builder (new OcflRepositoryBuilder)
-        java_path (. (clojure.java.io/as-file path) toPath)
         mapper (. (new ObjectIdPathMapperBuilder) buildFlatMapper)
-        storage (new FileSystemOcflStorage java_path mapper)]
-    (. builder (build storage java_path))))
+        storage (new FileSystemOcflStorage repoRootPath mapper)
+        stagingDir (get-default-tmp-dir)]
+    (. builder (build storage stagingDir))))
 
 (deftest test-app
   (testing "main route"
@@ -26,6 +38,6 @@
 
 (deftest test-ocfl
   (testing "create repo"
-    (let [repo (get-test-repo "/tmp/test-ocfl")]
+    (let [repo (create-test-repo (create-tmp-dir))]
       (println (. repo toString)))))
 
