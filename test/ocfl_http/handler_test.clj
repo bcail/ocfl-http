@@ -5,6 +5,8 @@
 (import '(edu.wisc.library.ocfl.core OcflRepositoryBuilder)
         '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
         '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder)
+        '(edu.wisc.library.ocfl.api OcflOption)
+        '(edu.wisc.library.ocfl.api.model CommitInfo ObjectId User)
         '(java.nio.file Files)
         '(java.nio.file.attribute FileAttribute))
 
@@ -18,6 +20,11 @@
   (let [attrs (make-array FileAttribute 0)]
     (Files/createTempDirectory "ocfl-http" attrs)))
 
+(defn create-tmp-file
+  []
+  (let [attrs (make-array FileAttribute 0)]
+    (Files/createTempFile "ocfl" ".tmp" attrs)))
+
 (defn create-test-repo
   [repoRootPath]
   (let [builder (new OcflRepositoryBuilder)
@@ -25,6 +32,19 @@
         storage (new FileSystemOcflStorage repoRootPath mapper)
         stagingDir (get-default-tmp-dir)]
     (. builder (build storage stagingDir))))
+
+(defn commit-info
+  []
+  (let [user (.setAddress (.setName (new User) "A") "fake address")]
+    (.setUser (.setMessage (new CommitInfo) "test msg") user)))
+
+(defn add-test-object
+  [repo]
+  (let [filePath (create-tmp-file)
+        commitInfo (commit-info)]
+    (do
+      (println filePath)
+      (.putObject repo (ObjectId/head "o1") filePath commitInfo (into-array OcflOption [OcflOption/OVERWRITE])))))
 
 (deftest test-app
   (testing "main route"
@@ -39,5 +59,7 @@
 (deftest test-ocfl
   (testing "create repo"
     (let [repo (create-test-repo (create-tmp-dir))]
-      (println (. repo toString)))))
+      (do
+        (add-test-object repo)
+        (println (.getObjectStreams repo (ObjectId/head "o1")))))))
 
