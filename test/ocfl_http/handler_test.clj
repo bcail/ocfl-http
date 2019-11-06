@@ -22,8 +22,11 @@
 
 (defn create-tmp-file
   []
-  (let [attrs (make-array FileAttribute 0)]
-    (Files/createTempFile "ocfl" ".tmp" attrs)))
+  (let [attrs (make-array FileAttribute 0)
+        tmpFilePath (Files/createTempFile "ocfl" ".tmp" attrs)]
+    (do
+      (.deleteOnExit (.toFile tmpFilePath))
+      tmpFilePath)))
 
 (defn create-test-repo
   [repoRootPath]
@@ -31,7 +34,7 @@
         mapper (. (new ObjectIdPathMapperBuilder) buildFlatMapper)
         storage (new FileSystemOcflStorage repoRootPath mapper)
         stagingDir (get-default-tmp-dir)]
-    (. builder (build storage stagingDir))))
+    (.build builder storage stagingDir)))
 
 (defn commit-info
   []
@@ -46,6 +49,14 @@
       (println filePath)
       (.putObject repo (ObjectId/head "o1") filePath commitInfo (into-array OcflOption [OcflOption/OVERWRITE])))))
 
+(defn delete-dir
+  [dirName]
+  (do
+    (println "deleting " dirName)
+    (let [files (reverse (file-seq (clojure.java.io/file dirName)))]
+      (doall
+        (map clojure.java.io/delete-file files)))))
+
 (deftest test-app
   (testing "main route"
     (let [response (app (mock/request :get "/"))]
@@ -58,8 +69,18 @@
 
 (deftest test-ocfl
   (testing "create repo"
-    (let [repo (create-test-repo (create-tmp-dir))]
+    (let [tmpDir (create-tmp-dir)
+          repo (create-test-repo tmpDir)]
       (do
         (add-test-object repo)
-        (println (.getObjectStreams repo (ObjectId/head "o1")))))))
+        (println (.getObjectStreams repo (ObjectId/head "o1")))
+        (.close repo)
+        (delete-dir (str tmpDir))))))
+
+(deftest test-delete
+  (testing "delete dir"
+    (let [tmpDir (create-tmp-dir)]
+      (do
+        (println (str tmpDir))
+        (delete-dir (str tmpDir))))))
 
