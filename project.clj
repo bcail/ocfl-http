@@ -8,6 +8,7 @@
                  [edu.wisc.library.ocfl/ocfl-java-core "1.0.0-SNAPSHOT"]
                  [edu.wisc.library.ocfl/ocfl-java-api "1.0.0-SNAPSHOT"]
                  ]
+  :repositories [["sonatype" {:url "https://oss.sonatype.org/content/repositories/snapshots"}]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler ocfl-http.handler/app}
   :profiles
