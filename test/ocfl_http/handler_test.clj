@@ -46,7 +46,6 @@
   (let [filePath (create-tmp-file)
         commitInfo (commit-info)]
     (do
-      (println filePath)
       (.putObject repo (ObjectId/head "o1") filePath commitInfo (into-array OcflOption [OcflOption/OVERWRITE])))))
 
 (defn delete-dir
@@ -80,7 +79,5 @@
 (deftest test-delete
   (testing "delete dir"
     (let [tmpDir (create-tmp-dir)]
-      (do
-        (println (str tmpDir))
-        (delete-dir (str tmpDir))))))
+      (delete-dir (str tmpDir)))))
 
