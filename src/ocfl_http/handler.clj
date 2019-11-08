@@ -14,14 +14,14 @@
   []
   @REPO_DIR)
 
+(defn str-to-path
+  [s]
+  (.toPath (clojure.java.io/file s)))
+
 (defn get-default-tmp-dir
   []
   (let [tmp (System/getProperty "java.io.tmpdir")]
-    (.toPath (clojure.java.io/as-file tmp))))
-
-(defn str-to-path
-  [s]
-  (.toPath (clojure.java.io/as-file s)))
+    (str-to-path tmp)))
 
 (defn get-repo
   "initializes repo if dir is empty"
@@ -44,15 +44,14 @@
   (let [repoDir (get-repo-dir)
         repo (get-repo repoDir)]
     (do
-      (println "repoDir: " repoDir)
       (let [relativePath (.getStorageRelativePath (.getFile (.getObject repo (ObjectVersionId/head id)) dsid))
             fullPath (Path/of repoDir (into-array String [(str relativePath)]))]
-        (slurp (clojure.java.io/as-file (str fullPath)))))))
+        (slurp (clojure.java.io/file (str fullPath)))))))
 
 (defroutes app-routes
   (GET "/" [] "OCFL HTTP")
   (GET "/objects/:id/datastreams/:dsid/content" [id dsid] (get-file id dsid))
-  (POST "/objects/:id" [id] ingest)
+  (POST "/objects/:id" [id] (ingest id))
   (route/not-found "Not Found"))
 
 (def app

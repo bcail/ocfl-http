@@ -16,7 +16,6 @@
 (defn delete-dir
   [dirName]
   (do
-    (println "deleting " dirName)
     (let [files (reverse (file-seq (clojure.java.io/file dirName)))]
       (doall
         (map clojure.java.io/delete-file files)))))
