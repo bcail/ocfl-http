@@ -5,10 +5,8 @@
 (import '(edu.wisc.library.ocfl.core OcflRepositoryBuilder)
         '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
         '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder)
-        '(edu.wisc.library.ocfl.api OcflOption)
-        '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
-        '(java.nio.file Files Path)
-        '(java.nio.file.attribute FileAttribute))
+        '(edu.wisc.library.ocfl.api.model ObjectVersionId)
+        '(java.nio.file Files Path))
 
 (def REPO_DIR (ref "/tmp/ocfl-http"))
 

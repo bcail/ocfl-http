@@ -2,10 +2,7 @@
   (:require [clojure.test :refer :all]
             [ring.mock.request :as mock]
             [ocfl-http.handler :refer :all]))
-(import '(edu.wisc.library.ocfl.core OcflRepositoryBuilder)
-        '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
-        '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder)
-        '(edu.wisc.library.ocfl.api OcflOption)
+(import '(edu.wisc.library.ocfl.api OcflOption)
         '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
         '(java.nio.file Files)
         '(java.nio.file.attribute FileAttribute))
