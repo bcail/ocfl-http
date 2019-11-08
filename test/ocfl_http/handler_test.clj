@@ -1,7 +1,8 @@
 (ns ocfl-http.handler-test
   (:require [clojure.test :refer :all]
             [ring.mock.request :as mock]
-            [ocfl-http.handler :refer :all]))
+            [ocfl-http.handler :refer :all]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
 (import '(edu.wisc.library.ocfl.api OcflOption)
         '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
         '(java.nio.file Files)
@@ -36,7 +37,10 @@
       (.putObject repo (ObjectVersionId/head "o1") contentPath commitInfo (into-array OcflOption []))
       (delete-dir (str contentDir)))))
 
-(deftest test-app
+(def test-app
+  (wrap-defaults app-routes (assoc site-defaults :security false)))
+
+(deftest test-static-routes
   (testing "main route"
     (let [response (app (mock/request :get "/"))]
       (is (= (:status response) 200))
@@ -46,13 +50,16 @@
     (let [response (app (mock/request :get "/invalid"))]
       (is (= (:status response) 404)))))
 
-;(deftest test-create
-;  (testing "create object"
-;    (let [response (app (-> (mock/request :post "/objects/testsuite1")
-;                            (mock/json-body {:foo "bar"})))
-;          tmpDir (create-tmp-dir)
-;          repo (create-test-repo tmpDir)]
-;      (is (= (:status response) 200)))))
+(deftest test-create
+  (testing "create object"
+    (let [repoDir (create-tmp-dir)
+          repo (get-repo repoDir)]
+      (do
+        (dosync (ref-set REPO_DIR (str repoDir)))
+        (let [response (test-app (-> (mock/request :post "/objects/testsuite1")
+                                (mock/json-body {:foo "bar"})))]
+          (is (= (:status response) 200)))
+        (delete-dir (str repoDir))))))
 
 (deftest test-get-file
   (testing "get file from ocfl object"
