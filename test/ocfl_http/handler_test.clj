@@ -9,8 +9,9 @@
 
 (defn create-tmp-dir
   []
-  (let [attrs (make-array FileAttribute 0)]
-    (Files/createTempDirectory "ocfl-http" attrs)))
+  (let [attrs (make-array FileAttribute 0)
+        tmpPath (Files/createTempDirectory "ocfl-http" attrs)]
+    (str tmpPath)))
 
 (defn delete-dir
   [dirName]
@@ -28,11 +29,12 @@
 (defn add-test-object
   [repo]
   (let [contentDir (create-tmp-dir)
+        contentPath (str-to-path contentDir)
         filePath (str contentDir "/DS")
         commitInfo (commit-info)]
     (do
       (spit (clojure.java.io/file filePath) "content")
-      (.putObject repo (ObjectVersionId/head "o1") contentDir commitInfo (into-array OcflOption []))
+      (.putObject repo (ObjectVersionId/head "o1") contentPath commitInfo (into-array OcflOption []))
       (delete-dir (str contentDir)))))
 
 (deftest test-app

@@ -17,12 +17,17 @@
 (defn get-default-tmp-dir
   []
   (let [tmp (System/getProperty "java.io.tmpdir")]
-    (. (clojure.java.io/as-file tmp) toPath)))
+    (.toPath (clojure.java.io/as-file tmp))))
+
+(defn str-to-path
+  [s]
+  (.toPath (clojure.java.io/as-file s)))
 
 (defn get-repo
   "initializes repo if dir is empty"
-  [repoRootPath]
-  (let [builder (new OcflRepositoryBuilder)
+  [repoRootDir]
+  (let [repoRootPath (str-to-path repoRootDir)
+        builder (new OcflRepositoryBuilder)
         mapper (. (new ObjectIdPathMapperBuilder) buildFlatMapper)
         storage (new FileSystemOcflStorage repoRootPath mapper)
         stagingDir (get-default-tmp-dir)]
@@ -37,7 +42,7 @@
 (defn get-file
   [id dsid]
   (let [repoDir (get-repo-dir)
-        repo (get-repo (Path/of repoDir (into-array String [])))]
+        repo (get-repo repoDir)]
     (do
       (println "repoDir: " repoDir)
       (let [relativePath (.getStorageRelativePath (.getFile (.getObject repo (ObjectVersionId/head id)) dsid))
