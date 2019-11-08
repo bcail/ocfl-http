@@ -6,47 +6,14 @@
         '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
         '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder)
         '(edu.wisc.library.ocfl.api OcflOption)
-        '(edu.wisc.library.ocfl.api.model CommitInfo ObjectId User)
+        '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
         '(java.nio.file Files)
         '(java.nio.file.attribute FileAttribute))
-
-(defn get-default-tmp-dir
-  []
-  (let [tmp (System/getProperty "java.io.tmpdir")]
-    (. (clojure.java.io/as-file tmp) toPath)))
 
 (defn create-tmp-dir
   []
   (let [attrs (make-array FileAttribute 0)]
     (Files/createTempDirectory "ocfl-http" attrs)))
-
-(defn create-tmp-file
-  []
-  (let [attrs (make-array FileAttribute 0)
-        tmpFilePath (Files/createTempFile "ocfl" ".tmp" attrs)]
-    (do
-      (.deleteOnExit (.toFile tmpFilePath))
-      tmpFilePath)))
-
-(defn create-test-repo
-  [repoRootPath]
-  (let [builder (new OcflRepositoryBuilder)
-        mapper (. (new ObjectIdPathMapperBuilder) buildFlatMapper)
-        storage (new FileSystemOcflStorage repoRootPath mapper)
-        stagingDir (get-default-tmp-dir)]
-    (.build builder storage stagingDir)))
-
-(defn commit-info
-  []
-  (let [user (.setAddress (.setName (new User) "A") "fake address")]
-    (.setUser (.setMessage (new CommitInfo) "test msg") user)))
-
-(defn add-test-object
-  [repo]
-  (let [filePath (create-tmp-file)
-        commitInfo (commit-info)]
-    (do
-      (.putObject repo (ObjectId/head "o1") filePath commitInfo (into-array OcflOption [OcflOption/OVERWRITE])))))
 
 (defn delete-dir
   [dirName]
@@ -56,28 +23,58 @@
       (doall
         (map clojure.java.io/delete-file files)))))
 
+(defn commit-info
+  []
+  (let [user (.setAddress (.setName (new User) "A") "fake address")]
+    (.setUser (.setMessage (new CommitInfo) "test msg") user)))
+
+(defn add-test-object
+  [repo]
+  (let [contentDir (create-tmp-dir)
+        filePath (str contentDir "/DS")
+        commitInfo (commit-info)]
+    (do
+      (spit (clojure.java.io/file filePath) "content")
+      (.putObject repo (ObjectVersionId/head "o1") contentDir commitInfo (into-array OcflOption []))
+      (delete-dir (str contentDir)))))
+
 (deftest test-app
   (testing "main route"
     (let [response (app (mock/request :get "/"))]
       (is (= (:status response) 200))
-      (is (= (:body response) "Hello World"))))
+      (is (= (:body response) "OCFL HTTP"))))
 
   (testing "not-found route"
     (let [response (app (mock/request :get "/invalid"))]
       (is (= (:status response) 404)))))
 
+;(deftest test-create
+;  (testing "create object"
+;    (let [response (app (-> (mock/request :post "/objects/testsuite1")
+;                            (mock/json-body {:foo "bar"})))
+;          tmpDir (create-tmp-dir)
+;          repo (create-test-repo tmpDir)]
+;      (is (= (:status response) 200)))))
+
+(deftest test-get-file
+  (testing "get file from ocfl object"
+    (let [repoDir (create-tmp-dir)
+          repo (get-repo repoDir)]
+      (do
+        (add-test-object repo)
+        (dosync (ref-set REPO_DIR (str repoDir)))
+        (let [response (app (mock/request :get "/objects/o1/datastreams/DS/content"))]
+          (is (= (:status response) 200))
+          (is (= (:body response) "content")))
+        (delete-dir (str repoDir))))))
+
 (deftest test-ocfl
   (testing "create repo"
     (let [tmpDir (create-tmp-dir)
-          repo (create-test-repo tmpDir)]
+          repo (get-repo tmpDir)]
       (do
         (add-test-object repo)
-        (println (.getObjectStreams repo (ObjectId/head "o1")))
+        (println (.getObjectStreams repo (ObjectVersionId/head "o1")))
         (.close repo)
         (delete-dir (str tmpDir))))))
-
-(deftest test-delete
-  (testing "delete dir"
-    (let [tmpDir (create-tmp-dir)]
-      (delete-dir (str tmpDir)))))
 
