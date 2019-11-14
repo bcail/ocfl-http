@@ -26,6 +26,10 @@
   (let [user (.setAddress (.setName (new User) "A") "fake address")]
     (.setUser (.setMessage (new CommitInfo) "test msg") user)))
 
+(defn add-file-to-object
+  [repo objectId pathToFile]
+  (.putObject repo (ObjectVersionId/head objectId) (str-to-path pathToFile) (commit-info) (into-array OcflOption [])))
+
 (defn add-test-object
   [repo]
   (let [contentDir (create-tmp-dir)
@@ -34,9 +38,11 @@
         commitInfo (commit-info)]
     (do
       (spit (clojure.java.io/file filePath) "content")
-      (.putObject repo (ObjectVersionId/head "o1") contentPath commitInfo (into-array OcflOption []))
+      (add-file-to-object repo "o1" filePath)
       (delete-dir (str contentDir)))))
 
+;create test app w/ security disabled for testing POST requests
+;https://stackoverflow.com/a/54585933
 (def test-app
   (wrap-defaults app-routes (assoc site-defaults :security false)))
 
@@ -56,10 +62,10 @@
           repo (get-repo repoDir)]
       (do
         (dosync (ref-set REPO_DIR (str repoDir)))
-        (let [response (test-app (-> (mock/request :post "/objects/testsuite1")
-                                (mock/json-body {:foo "bar"})))]
+        (let [response (test-app (-> (mock/request :post "/objects/testsuite:1")
+                                     (mock/json-body {:foo "bar"})))]
           (is (= (:status response) 200)))
-        (delete-dir (str repoDir))))))
+        (delete-dir repoDir)))))
 
 (deftest test-get-file
   (testing "get file from ocfl object"
@@ -71,15 +77,29 @@
         (let [response (app (mock/request :get "/objects/o1/datastreams/DS/content"))]
           (is (= (:status response) 200))
           (is (= (:body response) "content")))
-        (delete-dir (str repoDir))))))
+        (delete-dir repoDir)))))
 
-(deftest test-ocfl
-  (testing "create repo"
+;;TEST OCFL functionality (no HTTP)
+
+(deftest test-ocfl-get-repo
+  (testing "get-repo (get repo object (initialize it if needed))"
     (let [tmpDir (create-tmp-dir)
-          repo (get-repo tmpDir)]
+          repo (get-repo tmpDir)
+          versionDeclarationFile (clojure.java.io/file (str tmpDir java.io.File/separator "0=ocfl_1.0"))]
       (do
-        (add-test-object repo)
-        (println (.getObjectStreams repo (ObjectVersionId/head "o1")))
-        (.close repo)
-        (delete-dir (str tmpDir))))))
+        (is (= (.isFile versionDeclarationFile) true))
+        (delete-dir tmpDir)))))
+
+(deftest test-ocfl-create-object
+  (testing "add-file-to-object (when object doesn't already exist)"
+    (let [tmpDir (create-tmp-dir)
+          repoDir (str tmpDir java.io.File/separator "ocfl_root")
+          repo (get-repo repoDir)
+          pathToFile (str tmpDir java.io.File/separator "file.txt")]
+      (do
+        (dosync (ref-set REPO_DIR repoDir))
+        (spit (clojure.java.io/file pathToFile) "content")
+        (add-file-to-object repo "o1" pathToFile)
+        (is (= ["file.txt"] (list-files "o1")))
+        (delete-dir tmpDir)))))
 

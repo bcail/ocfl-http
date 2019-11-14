@@ -39,6 +39,16 @@
     (println "ingest")
     "ingested"))
 
+(defn list-files
+  [id]
+  (let [repoDir (get-repo-dir)
+        repo (get-repo repoDir)
+        objectVersionId (ObjectVersionId/head "o1")
+        version (.describeVersion repo objectVersionId)
+        files (.getFiles version)]
+    (do
+      (map #(.getPath %) files))))
+
 (defn get-file
   [id dsid]
   (let [repoDir (get-repo-dir)
