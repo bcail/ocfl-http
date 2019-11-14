@@ -3,9 +3,7 @@
             [ring.mock.request :as mock]
             [ocfl-http.handler :refer :all]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
-(import '(edu.wisc.library.ocfl.api OcflOption)
-        '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
-        '(java.nio.file Files)
+(import '(java.nio.file Files)
         '(java.nio.file.attribute FileAttribute))
 
 (defn create-tmp-dir
@@ -21,24 +19,15 @@
       (doall
         (map clojure.java.io/delete-file files)))))
 
-(defn commit-info
-  []
-  (let [user (.setAddress (.setName (new User) "A") "fake address")]
-    (.setUser (.setMessage (new CommitInfo) "test msg") user)))
-
-(defn add-file-to-object
-  [repo objectId pathToFile]
-  (.putObject repo (ObjectVersionId/head objectId) (str-to-path pathToFile) (commit-info) (into-array OcflOption [])))
-
 (defn add-test-object
-  [repo]
+  []
   (let [contentDir (create-tmp-dir)
         contentPath (str-to-path contentDir)
         filePath (str contentDir "/DS")
         commitInfo (commit-info)]
     (do
       (spit (clojure.java.io/file filePath) "content")
-      (add-file-to-object repo "o1" filePath)
+      (add-file-to-object "o1" filePath)
       (delete-dir (str contentDir)))))
 
 ;create test app w/ security disabled for testing POST requests
@@ -69,11 +58,10 @@
 
 (deftest test-get-file
   (testing "get file from ocfl object"
-    (let [repoDir (create-tmp-dir)
-          repo (get-repo repoDir)]
+    (let [repoDir (create-tmp-dir)]
       (do
-        (add-test-object repo)
-        (dosync (ref-set REPO_DIR (str repoDir)))
+        (dosync (ref-set REPO_DIR repoDir))
+        (add-test-object)
         (let [response (app (mock/request :get "/objects/o1/datastreams/DS/content"))]
           (is (= (:status response) 200))
           (is (= (:body response) "content")))
@@ -91,15 +79,14 @@
         (delete-dir tmpDir)))))
 
 (deftest test-ocfl-create-object
-  (testing "add-file-to-object (when object doesn't already exist)"
+  (testing "add-file-to-object & list-files"
     (let [tmpDir (create-tmp-dir)
           repoDir (str tmpDir java.io.File/separator "ocfl_root")
-          repo (get-repo repoDir)
           pathToFile (str tmpDir java.io.File/separator "file.txt")]
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (spit (clojure.java.io/file pathToFile) "content")
-        (add-file-to-object repo "o1" pathToFile)
+        (add-file-to-object "o1" pathToFile)
         (is (= ["file.txt"] (list-files "o1")))
         (delete-dir tmpDir)))))
 
