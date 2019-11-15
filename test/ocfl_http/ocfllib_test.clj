@@ -13,7 +13,7 @@
         (delete-dir tmpDir)))))
 
 (deftest test-ocfl-create-object
-  (testing "add-file-to-object & list-files"
+  (testing "add-file-to-object, list-files, get-file"
     (let [tmpDir (create-tmp-dir)
           repoDir (str tmpDir java.io.File/separator "ocfl_root")
           pathToFile (str tmpDir java.io.File/separator "file.txt")]
@@ -22,5 +22,6 @@
         (spit (clojure.java.io/file pathToFile) "content")
         (add-file-to-object "o1" pathToFile commitInfo)
         (is (= ["file.txt"] (list-files "o1")))
+        (is (= "content" (get-file "o1" "file.txt")))
         (delete-dir tmpDir)))))
 

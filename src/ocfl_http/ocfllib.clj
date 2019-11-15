@@ -31,10 +31,10 @@
   ([] (get-repo (get-repo-dir)))
   ([repoRootDir]
     (let [repoRootPath (str-to-path repoRootDir)
-        builder (new OcflRepositoryBuilder)
-        mapper (. (new ObjectIdPathMapperBuilder) buildFlatMapper)
-        storage (new FileSystemOcflStorage repoRootPath mapper)
-        stagingDir (get-default-tmp-dir)]
+          builder (new OcflRepositoryBuilder)
+          mapper (.buildFlatMapper (new ObjectIdPathMapperBuilder))
+          storage (new FileSystemOcflStorage repoRootPath mapper)
+          stagingDir (get-default-tmp-dir)]
       (.build builder storage stagingDir))))
 
 (defn add-file-to-object
@@ -53,11 +53,11 @@
       (map #(.getPath %) files))))
 
 (defn get-file
-  [id dsid]
+  [id logicalPath]
   (let [repoDir (get-repo-dir)
         repo (get-repo repoDir)]
     (do
-      (let [relativePath (.getStorageRelativePath (.getFile (.getObject repo (ObjectVersionId/head id)) dsid))
+      (let [relativePath (.getStorageRelativePath (.getFile (.getObject repo (ObjectVersionId/head id)) logicalPath))
             fullPath (Path/of repoDir (into-array String [(str relativePath)]))]
         (slurp (clojure.java.io/file (str fullPath)))))))
 
