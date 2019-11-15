@@ -22,9 +22,9 @@
     (str-to-path tmp)))
 
 (defn commit-info
-  []
-  (let [user (.setAddress (.setName (new User) "A") "fake address")]
-    (.setUser (.setMessage (new CommitInfo) "test msg") user)))
+  [{userName "name" address "address" message "message"}]
+  (let [user (.setAddress (.setName (new User) userName) address)]
+    (.setUser (.setMessage (new CommitInfo) message) user)))
 
 (defn get-repo
   "initializes repo if dir is empty"
@@ -38,9 +38,9 @@
       (.build builder storage stagingDir))))
 
 (defn add-file-to-object
-  [objectId pathToFile]
+  [objectId pathToFile commitInfo]
   (let [repo (get-repo)]
-    (.putObject repo (ObjectVersionId/head objectId) (str-to-path pathToFile) (commit-info) (into-array OcflOption []))))
+    (.putObject repo (ObjectVersionId/head objectId) (str-to-path pathToFile) (commit-info commitInfo) (into-array OcflOption []))))
 
 (defn list-files
   [id]

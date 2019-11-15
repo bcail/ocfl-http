@@ -2,6 +2,8 @@
 (import '(java.nio.file Files)
         '(java.nio.file.attribute FileAttribute))
 
+(def commitInfo {"name" "A" "address" "fake address" "message" "test message"})
+
 (defn create-tmp-dir
   []
   (let [attrs (make-array FileAttribute 0)

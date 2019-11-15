@@ -3,7 +3,7 @@
             [ring.mock.request :as mock]
             [ocfl-http.handler :refer :all]
             [ocfl-http.ocfllib :refer [REPO_DIR add-file-to-object]]
-            [ocfl-http.testutils :refer [create-tmp-dir delete-dir]]
+            [ocfl-http.testutils :refer [create-tmp-dir delete-dir commitInfo]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
 
 (defn add-test-object
@@ -12,7 +12,7 @@
         filePath (str contentDir "/DS")]
     (do
       (spit (clojure.java.io/file filePath) "content")
-      (add-file-to-object "o1" filePath)
+      (add-file-to-object "o1" filePath commitInfo)
       (delete-dir (str contentDir)))))
 
 ;create test app w/ security disabled for testing POST requests

@@ -1,7 +1,7 @@
 (ns ocfl-http.ocfllib-test
   (:require [clojure.test :refer :all]
             [ocfl-http.ocfllib :refer :all]
-            [ocfl-http.testutils :refer [delete-dir create-tmp-dir]]))
+            [ocfl-http.testutils :refer [delete-dir create-tmp-dir commitInfo]]))
 
 (deftest test-ocfl-get-repo
   (testing "get-repo (get repo object (initialize it if needed))"
@@ -20,7 +20,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (spit (clojure.java.io/file pathToFile) "content")
-        (add-file-to-object "o1" pathToFile)
+        (add-file-to-object "o1" pathToFile commitInfo)
         (is (= ["file.txt"] (list-files "o1")))
         (delete-dir tmpDir)))))
 
