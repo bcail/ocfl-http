@@ -3,7 +3,7 @@
         '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
         '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder)
         '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
-        '(edu.wisc.library.ocfl.api OcflOption)
+        '(edu.wisc.library.ocfl.api OcflOption OcflObjectUpdater)
         '(java.nio.file Files Path))
 
 (def REPO_DIR (ref "/tmp/ocfl-http"))
@@ -39,8 +39,14 @@
 
 (defn add-file-to-object
   [objectId pathToFile commitInfo]
-  (let [repo (get-repo)]
-    (.putObject repo (ObjectVersionId/head objectId) (str-to-path pathToFile) (commit-info commitInfo) (into-array OcflOption []))))
+  (let [repo (get-repo)
+        options (into-array OcflOption [])]
+    (if (.containsObject repo objectId)
+      (let [consumer (reify java.util.function.Consumer
+                       (accept [OcflObjectUpdater updater]
+                         (.addPath updater (str-to-path pathToFile) (.getName (clojure.java.io/as-file pathToFile)) options)))]
+        (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer))
+      (.putObject repo (ObjectVersionId/head objectId) (str-to-path pathToFile) (commit-info commitInfo) options))))
 
 (defn list-files
   [id]
