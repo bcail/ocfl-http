@@ -12,7 +12,7 @@
         filePath (str contentDir "/DS")]
     (do
       (spit (clojure.java.io/file filePath) "content")
-      (add-file-to-object "o1" filePath commitInfo)
+      (add-file-to-object "o1" [filePath] commitInfo)
       (delete-dir (str contentDir)))))
 
 ;create test app w/ security disabled for testing POST requests

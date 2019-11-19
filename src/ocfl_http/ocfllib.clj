@@ -38,15 +38,14 @@
       (.build builder storage stagingDir))))
 
 (defn add-file-to-object
-  [objectId pathToFile commitInfo]
+  [objectId filePaths commitInfo]
   (let [repo (get-repo)
-        options (into-array OcflOption [])]
-    (if (.containsObject repo objectId)
-      (let [consumer (reify java.util.function.Consumer
+        options (into-array OcflOption [])
+        consumer (reify java.util.function.Consumer
                        (accept [OcflObjectUpdater updater]
-                         (.addPath updater (str-to-path pathToFile) (.getName (clojure.java.io/as-file pathToFile)) options)))]
-        (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer))
-      (.putObject repo (ObjectVersionId/head objectId) (str-to-path pathToFile) (commit-info commitInfo) options))))
+                         (doall
+                          (map #(.addPath updater (str-to-path %) (.getName (clojure.java.io/as-file %)) options) filePaths))))]
+    (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
 
 (defn list-files
   [id]

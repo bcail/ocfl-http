@@ -20,7 +20,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (spit (clojure.java.io/file pathToFile) "content")
-        (add-file-to-object "o1" pathToFile commitInfo)
+        (add-file-to-object "o1" [pathToFile] commitInfo)
         (is (= ["file.txt"] (list-files "o1")))
         (is (= "content" (get-file "o1" "file.txt")))
         (delete-dir tmpDir)))))
@@ -37,9 +37,9 @@
         (spit (clojure.java.io/file pathToInitialFile) "initial file contents")
         (spit (clojure.java.io/file pathToFile1) "file1 contents")
         (spit (clojure.java.io/file pathToFile2) "file2 contents")
-        (add-file-to-object "o1" pathToInitialFile commitInfo)
+        (add-file-to-object "o1" [pathToInitialFile] commitInfo)
         (is (= ["initial_file.txt"] (list-files "o1")))
-        (add-file-to-object "o1" pathToFile1 commitInfo)
-        (is (= ["file1.txt" "initial_file.txt"] (sort (list-files "o1"))))
+        (add-file-to-object "o1" [pathToFile1 pathToFile2] commitInfo)
+        (is (= ["file1.txt" "file2.txt" "initial_file.txt"] (sort (list-files "o1"))))
         (delete-dir tmpDir)))))
 
