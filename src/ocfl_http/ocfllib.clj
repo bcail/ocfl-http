@@ -1,7 +1,7 @@
 (ns ocfl-http.ocfllib)
 (import '(edu.wisc.library.ocfl.core OcflRepositoryBuilder)
         '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
-        '(edu.wisc.library.ocfl.core.mapping ObjectIdPathMapperBuilder)
+        '(edu.wisc.library.ocfl.core.extension.layout.config DefaultLayoutConfig)
         '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
         '(edu.wisc.library.ocfl.api OcflOption OcflObjectUpdater)
         '(java.nio.file Files Path))
@@ -27,15 +27,18 @@
     (.setUser (.setMessage (new CommitInfo) message) user)))
 
 (defn get-repo
-  "initializes repo if dir is empty"
+  "initializes repo if repoRootDir doesn't already contain a repo"
   ([] (get-repo (get-repo-dir)))
   ([repoRootDir]
     (let [repoRootPath (str-to-path repoRootDir)
           builder (new OcflRepositoryBuilder)
-          mapper (.buildFlatMapper (new ObjectIdPathMapperBuilder))
-          storage (new FileSystemOcflStorage repoRootPath mapper)
-          stagingDir (get-default-tmp-dir)]
-      (.build builder storage stagingDir))))
+          storageBuilder (FileSystemOcflStorage/builder)
+          storage (.build storageBuilder repoRootPath)
+          stagingDir (get-default-tmp-dir)
+          layoutConfig (DefaultLayoutConfig/nTupleHashConfig)]
+      (do
+        (.layoutConfig builder layoutConfig)
+        (.build builder storage stagingDir)))))
 
 (defn add-file-to-object
   [objectId filePaths commitInfo]
