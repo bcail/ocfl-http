@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [ring.mock.request :as mock]
             [ocfl-http.handler :refer :all]
-            [ocfl-http.ocfllib :refer [REPO_DIR add-file-to-object]]
+            [ocfl-http.ocfllib :refer [REPO_DIR add-path-to-object get-file]]
             [ocfl-http.testutils :refer [create-tmp-dir delete-dir commitInfo]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
 
@@ -12,7 +12,7 @@
         filePath (str contentDir "/DS")]
     (do
       (spit (clojure.java.io/file filePath) "content")
-      (add-file-to-object "o1" [filePath] commitInfo)
+      (add-path-to-object "o1" filePath commitInfo)
       (delete-dir (str contentDir)))))
 
 ;create test app w/ security disabled for testing POST requests
@@ -35,9 +35,10 @@
     (let [repoDir (create-tmp-dir)]
       (do
         (dosync (ref-set REPO_DIR (str repoDir)))
-        (let [response (test-app (-> (mock/request :post "/objects/testsuite:1")
-                                     (mock/json-body {:foo "bar"})))]
-          (is (= (:status response) 200)))
+        (let [response (test-app (-> (mock/request :post "/testsuite:1/file1")
+                                     (mock/body "content")))]
+          (is (= (:status response) 200))
+          (is (= (get-file "testsuite:1" "file1") "content")))
         (delete-dir repoDir)))))
 
 (deftest test-get-file
@@ -46,7 +47,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (app (mock/request :get "/objects/o1/datastreams/DS/content"))]
+        (let [response (app (mock/request :get "/o1/DS"))]
           (is (= (:status response) 200))
           (is (= (:body response) "content")))
         (delete-dir repoDir)))))

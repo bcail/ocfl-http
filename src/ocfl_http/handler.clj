@@ -2,18 +2,22 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
-            [ocfl-http.ocfllib :refer [get-file]]))
+            [ocfl-http.ocfllib :refer [get-file write-file-to-object]]))
 
 (defn ingest
-  [id]
+  [request]
   (do
-    (println "ingest")
+    (let [id (:id (:params request))
+          commitInfo {"name" "A" "address" "fake address" "message" "test message"}
+          destinationPath (:destinationpath (:params request))
+          inputStream (:body request)]
+      (write-file-to-object id inputStream destinationPath commitInfo))
     "ingested"))
 
 (defroutes app-routes
   (GET "/" [] "OCFL HTTP")
-  (GET "/objects/:id/datastreams/:dsid/content" [id dsid] (get-file id dsid))
-  (POST "/objects/:id" [id] (ingest id))
+  (GET "/:id/:dsid" [id dsid] (get-file id dsid))
+  (POST "/:id/:destinationpath" [] ingest)
   (route/not-found "Not Found"))
 
 (def app
