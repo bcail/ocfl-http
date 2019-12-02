@@ -9,7 +9,7 @@
 (defn add-test-object
   []
   (let [contentDir (create-tmp-dir)
-        filePath (str contentDir "/DS")]
+        filePath (str contentDir "/file")]
     (do
       (spit (clojure.java.io/file filePath) "content")
       (add-path-to-object "o1" filePath commitInfo)
@@ -47,7 +47,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (app (mock/request :get "/o1/DS"))]
+        (let [response (app (mock/request :get "/o1/file"))]
           (is (= (:status response) 200))
           (is (= (:body response) "content")))
         (delete-dir repoDir)))))

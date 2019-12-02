@@ -41,25 +41,25 @@
         (.build builder storage stagingDir)))))
 
 (defn write-file-to-object
-  [objectId inputStream destinationPath commitInfo]
+  [objectId inputStream path commitInfo]
   (let [repo (get-repo)
         options (into-array OcflOption [])
         consumer (reify java.util.function.Consumer
                    (accept [OcflObjectUpdater updater]
-                     (.writeFile updater inputStream destinationPath options)))]
+                     (.writeFile updater inputStream path options)))]
     (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
 
 (defn add-path-to-object
-  [objectId filePath commitInfo]
+  [objectId pathToSourceFile commitInfo]
   (let [repo (get-repo)
         options (into-array OcflOption [])
         consumer (reify java.util.function.Consumer
                        (accept [OcflObjectUpdater updater]
-                          (.addPath updater (str-to-path filePath) (.getName (clojure.java.io/as-file filePath)) options)))]
+                          (.addPath updater (str-to-path pathToSourceFile) (.getName (clojure.java.io/as-file pathToSourceFile)) options)))]
     (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
 
 (defn list-files
-  [id]
+  [objectId]
   (let [repoDir (get-repo-dir)
         repo (get-repo repoDir)
         objectVersionId (ObjectVersionId/head "o1")
@@ -69,11 +69,11 @@
       (map #(.getPath %) files))))
 
 (defn get-file
-  [id logicalPath]
+  [objectId path]
   (let [repoDir (get-repo-dir)
         repo (get-repo repoDir)]
     (do
-      (let [relativePath (.getStorageRelativePath (.getFile (.getObject repo (ObjectVersionId/head id)) logicalPath))
+      (let [relativePath (.getStorageRelativePath (.getFile (.getObject repo (ObjectVersionId/head objectId)) path))
             fullPath (Path/of repoDir (into-array String [(str relativePath)]))]
         (slurp (clojure.java.io/file (str fullPath)))))))
 

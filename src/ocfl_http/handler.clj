@@ -7,18 +7,19 @@
 (defn ingest
   [request]
   (do
-    (let [id (:id (:params request))
+    (let [objectId (:objectid (:params request))
           commitInfo {"name" "A" "address" "fake address" "message" "test message"}
-          destinationPath (:destinationpath (:params request))
+          path (:path (:params request))
           inputStream (:body request)]
-      (write-file-to-object id inputStream destinationPath commitInfo))
+      (write-file-to-object objectId inputStream path commitInfo))
     "ingested"))
 
 (defroutes app-routes
   (GET "/" [] "OCFL HTTP")
-  (GET "/:id/:dsid" [id dsid] (get-file id dsid))
-  (POST "/:id/:destinationpath" [] ingest)
+  (GET "/:objectid/:path" [objectid path] (get-file objectid path))
+  (POST "/:objectid/:path" [] ingest)
   (route/not-found "Not Found"))
 
 (def app
   (wrap-defaults app-routes site-defaults))
+
