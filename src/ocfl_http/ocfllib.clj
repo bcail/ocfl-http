@@ -77,12 +77,26 @@
     (do
       (map #(.getPath %) files))))
 
+(defn- get-path-to-file
+  [repoDir fileDetail]
+  (let [relativePath (.getStorageRelativePath fileDetail)]
+    (Path/of repoDir (into-array String [(str relativePath)]))))
+
 (defn get-file
   [objectId path]
   (let [repoDir (get-repo-dir)
         repo (get-repo repoDir)]
     (do
-      (let [relativePath (.getStorageRelativePath (.getFile (.getObject repo (ObjectVersionId/head objectId)) path))
-            fullPath (Path/of repoDir (into-array String [(str relativePath)]))]
+      (let [object (.getObject repo (ObjectVersionId/head objectId))
+            file (.getFile object path)
+            fullPath (get-path-to-file repoDir file)]
         (slurp (clojure.java.io/file (str fullPath)))))))
+
+(defn get-file-content-versions
+  [objectId path]
+  (let [repoDir (get-repo-dir)
+        repo (get-repo repoDir)
+        objectDetails (.describeObject repo objectId)
+        versionMap (.getVersionMap objectDetails)]
+      (reverse (map #(slurp (clojure.java.io/file (str (get-path-to-file repoDir (.getFile % path))))) (.values versionMap)))))
 
