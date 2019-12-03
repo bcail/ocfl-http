@@ -49,6 +49,15 @@
                      (.writeFile updater inputStream path options)))]
     (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
 
+(defn update-file-in-object
+  [objectId inputStream path commitInfo]
+  (let [repo (get-repo)
+        options (into-array OcflOption [OcflOption/OVERWRITE])
+        consumer (reify java.util.function.Consumer
+                   (accept [OcflObjectUpdater updater]
+                     (.writeFile updater inputStream path options)))]
+    (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
+
 (defn add-path-to-object
   [objectId pathToSourceFile commitInfo]
   (let [repo (get-repo)

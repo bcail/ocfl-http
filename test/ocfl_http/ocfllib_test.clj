@@ -46,3 +46,16 @@
         (is (= ["file1.txt" "file2.txt" "file3.txt" "initial_file.txt"] (sort (list-files "o1"))))
         (delete-dir tmpDir)))))
 
+(deftest test-overwrite-file
+  (testing "overwrite existing file in object"
+    (let [tmpDir (create-tmp-dir)
+          repoDir (str tmpDir java.io.File/separator "ocfl_root")]
+      (do
+        (dosync (ref-set REPO_DIR repoDir))
+        (with-open [xin (clojure.java.io/input-stream (.getBytes "initial contents"))]
+          (write-file-to-object "o1" xin "file" commitInfo))
+        (with-open [xin (clojure.java.io/input-stream (.getBytes "updated contents"))]
+          (update-file-in-object "o1" xin "file" commitInfo))
+        (is (= "updated contents" (get-file "o1" "file")))
+        (delete-dir tmpDir)))))
+
