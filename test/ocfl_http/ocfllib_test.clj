@@ -22,7 +22,7 @@
         (spit (clojure.java.io/file pathToFile) "content")
         (add-path-to-object "o1" pathToFile commitInfo)
         (is (= ["file.txt"] (list-files "o1")))
-        (is (= "content" (get-file "o1" "file.txt")))
+        (is (= "content" (slurp (get-file "o1" "file.txt"))))
         (delete-dir tmpDir)))))
 
 (deftest test-add-files-to-object
@@ -56,7 +56,7 @@
           (write-file-to-object "o1" xin "file" commitInfo))
         (with-open [xin (clojure.java.io/input-stream (.getBytes "updated contents"))]
           (update-file-in-object "o1" xin "file" commitInfo))
-        (is (= "updated contents" (get-file "o1" "file")))
+        (is (= "updated contents" (slurp (get-file "o1" "file"))))
         (delete-dir tmpDir)))))
 
 (deftest test-get-previous-version-of-file

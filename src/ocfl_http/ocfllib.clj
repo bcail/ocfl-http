@@ -90,7 +90,7 @@
       (let [object (.getObject repo (ObjectVersionId/head objectId))
             file (.getFile object path)
             fullPath (get-path-to-file repoDir file)]
-        (slurp (clojure.java.io/file (str fullPath)))))))
+        (clojure.java.io/file (str fullPath))))))
 
 (defn get-file-content-versions
   [objectId path]

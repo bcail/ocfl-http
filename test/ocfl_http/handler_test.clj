@@ -37,8 +37,9 @@
         (dosync (ref-set REPO_DIR repoDir))
         (let [response (test-app (-> (mock/request :post "/testsuite:1/file1")
                                      (mock/body "content")))]
-          (is (= (:status response) 200))
-          (is (= (get-file "testsuite:1" "file1") "content")))
+          (is (= (:status response) 201))
+          (is (= (:body response) ""))
+          (is (= (slurp (get-file "testsuite:1" "file1")) "content")))
         (delete-dir repoDir)))))
 
 (deftest test-update
@@ -49,8 +50,9 @@
         (add-test-object)
         (let [response (test-app (-> (mock/request :put "/testsuite:1/file")
                                      (mock/body "updated contents")))]
-          (is (= (:status response) 200))
-          (is (= (get-file "testsuite:1" "file") "updated contents"))
+          (is (= (:status response) 201))
+          (is (= (:body response) ""))
+          (is (= (slurp (get-file "testsuite:1" "file")) "updated contents"))
         (delete-dir repoDir))))))
 
 (deftest test-get-file
@@ -59,8 +61,10 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (app (mock/request :get "/testsuite:1/file"))]
+        (let [response (test-app (mock/request :get "/testsuite:1/file"))
+              headers (:headers response)]
           (is (= (:status response) 200))
-          (is (= (:body response) "content")))
+          (is (= (headers "Content-Length") "7"))
+          (is (= (slurp (:body response)) "content")))
         (delete-dir repoDir)))))
 
