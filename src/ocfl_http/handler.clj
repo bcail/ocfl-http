@@ -4,7 +4,17 @@
             [compojure.response :refer [render]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.util.response :as response]
-            [ocfl-http.ocfllib :refer [get-file write-file-to-object update-file-in-object]]))
+            [ocfl-http.ocfllib :refer [object-exists list-files get-file write-file-to-object update-file-in-object]]))
+
+(defn show-object
+  [request]
+  (let [objectId (:objectid (:params request))]
+    (if (object-exists objectId)
+      {:status 200
+       :headers {}
+       :body (clojure.string/join ", " (list-files objectId))}
+      {:status 404
+       :headers {}})))
 
 (defn serve-file
   [request]
@@ -36,11 +46,16 @@
 
 (defroutes app-routes
   (GET "/" [] "OCFL HTTP")
+  (GET "/:objectid" [] show-object)
   (GET "/:objectid/:path" [] serve-file)
   (POST "/:objectid/:path" [] ingest)
   (PUT "/:objectid/:path" [] update-file)
   (route/not-found "Not Found"))
 
+;disable security for now
+;https://stackoverflow.com/a/54585933
+;(def app
+;  (wrap-defaults app-routes site-defaults))
 (def app
-  (wrap-defaults app-routes site-defaults))
+  (wrap-defaults app-routes (assoc site-defaults :security false)))
 

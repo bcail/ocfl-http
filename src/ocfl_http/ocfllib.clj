@@ -40,6 +40,12 @@
         (.layoutConfig builder layoutConfig)
         (.build builder storage stagingDir)))))
 
+(defn object-exists
+  [objectId]
+  (let [repo (get-repo)]
+    (if (.containsObject repo objectId)
+      true)))
+
 (defn write-file-to-object
   [objectId inputStream path commitInfo]
   (let [repo (get-repo)

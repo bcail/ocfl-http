@@ -55,6 +55,18 @@
           (is (= (slurp (get-file "testsuite:1" "file")) "updated contents"))
         (delete-dir repoDir))))))
 
+(deftest test-show-object
+  (testing "get object info"
+    (let [repoDir (create-tmp-dir)]
+      (do
+        (dosync (ref-set REPO_DIR repoDir))
+        (add-test-object)
+        (let [response (test-app (mock/request :get "/testsuite:1"))
+              headers (:headers response)]
+          (is (= (:status response) 200))
+          (is (= (:body response) "file")))
+      (delete-dir repoDir)))))
+
 (deftest test-get-file
   (testing "get file from ocfl object"
     (let [repoDir (create-tmp-dir)]
