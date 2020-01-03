@@ -71,7 +71,7 @@
   [objectId]
   (let [repoDir (get-repo-dir)
         repo (get-repo repoDir)
-        objectVersionId (ObjectVersionId/head "o1")
+        objectVersionId (ObjectVersionId/head objectId)
         version (.describeVersion repo objectVersionId)
         files (.getFiles version)]
     (do
