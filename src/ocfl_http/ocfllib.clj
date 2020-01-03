@@ -1,6 +1,6 @@
 (ns ocfl-http.ocfllib)
 (import '(edu.wisc.library.ocfl.core OcflRepositoryBuilder)
-        '(edu.wisc.library.ocfl.core.storage FileSystemOcflStorage)
+        '(edu.wisc.library.ocfl.core.storage.filesystem FileSystemOcflStorage)
         '(edu.wisc.library.ocfl.core.extension.layout.config DefaultLayoutConfig)
         '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
         '(edu.wisc.library.ocfl.api OcflOption OcflObjectUpdater)
