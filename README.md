@@ -1,6 +1,6 @@
 # ocfl-http
 
-FIXME
+HTTP interface for OCFL repository.
 
 ## Prerequisites
 
@@ -12,8 +12,13 @@ You will need [Leiningen][] 2.0.0 or above installed.
 
 To start a web server for the application, run:
 
-    lein ring server
+    lein ring server OR lein run
 
-## License
+To create a jar file, run:
 
-Copyright © 2019 FIXME
+    lein uberjar
+
+To run the jar file, run:
+
+    java -jar target/ocfl-http.jar
+

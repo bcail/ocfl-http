@@ -4,8 +4,10 @@
             [compojure.response :refer [render]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.util.response :as response]
+            [ring.adapter.jetty :refer [run-jetty]]
             [clojure.data.json :as json]
-            [ocfl-http.ocfllib :refer [object-exists list-files get-file write-file-to-object update-file-in-object]]))
+            [ocfl-http.ocfllib :refer [object-exists list-files get-file write-file-to-object update-file-in-object]])
+  (:gen-class))
 
 (defn show-object
   [request]
@@ -60,3 +62,5 @@
 (def app
   (wrap-defaults app-routes (assoc site-defaults :security false)))
 
+(defn -main [& args]
+  (run-jetty app {:port  (Integer/valueOf (or (System/getenv "PORT") "8000" ))}))
