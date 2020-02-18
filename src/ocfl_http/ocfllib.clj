@@ -26,19 +26,27 @@
   (let [user (.setAddress (.setName (new User) userName) address)]
     (.setUser (.setMessage (new CommitInfo) message) user)))
 
+(defn- file-system-storage
+  [repoRootPath]
+  (let [storageBuilder (FileSystemOcflStorage/builder)]
+    (do
+      (.repositoryRoot storageBuilder repoRootPath)
+      (.build storageBuilder))))
+
 (defn get-repo
   "initializes repo if repoRootDir doesn't already contain a repo"
   ([] (get-repo (get-repo-dir)))
   ([repoRootDir]
     (let [repoRootPath (str-to-path repoRootDir)
-          builder (new OcflRepositoryBuilder)
-          storageBuilder (FileSystemOcflStorage/builder)
-          storage (.build storageBuilder repoRootPath)
           stagingDir (get-default-tmp-dir)
-          layoutConfig (DefaultLayoutConfig/nTupleHashConfig)]
+          layoutConfig (DefaultLayoutConfig/nTupleHashConfig)
+          storage (file-system-storage repoRootPath)
+          repoBuilder (new OcflRepositoryBuilder)]
       (do
-        (.layoutConfig builder layoutConfig)
-        (.build builder storage stagingDir)))))
+        (.layoutConfig repoBuilder layoutConfig)
+        (.storage repoBuilder storage)
+        (.workDir repoBuilder stagingDir)
+        (.build repoBuilder)))))
 
 (defn object-exists
   [objectId]
