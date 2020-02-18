@@ -6,7 +6,8 @@
             [ring.util.response :as response]
             [ring.adapter.jetty :refer [run-jetty]]
             [clojure.data.json :as json]
-            [ocfl-http.ocfllib :refer [object-exists list-files get-file write-file-to-object update-file-in-object]])
+            [clojure.edn :as edn]
+            [ocfl-http.ocfllib :refer [REPO_DIR object-exists list-files get-file write-file-to-object update-file-in-object]])
   (:gen-class))
 
 (defn show-object
@@ -62,5 +63,23 @@
 (def app
   (wrap-defaults app-routes (assoc site-defaults :security false)))
 
-(defn -main [& args]
-  (run-jetty app {:port  (Integer/valueOf (or (System/getenv "PORT") "8000" ))}))
+(defn- get-config
+  [file-path]
+  (edn/read-string (slurp file-path)))
+
+(defn- run
+  [port-number repo-dir]
+  (do
+    (dosync (ref-set REPO_DIR repo-dir))
+    (run-jetty app {:port (Integer/valueOf port-number)})))
+
+(defn -main
+  ([]
+   (let [port (or (System/getenv "PORT") "8000")
+         repo-dir (or (System/getenv "OCFL-ROOT") "/tmp/ocfl-http")]
+     (run port repo-dir)))
+  ([config-file]
+   (let [config (get-config config-file)
+         port (config "PORT")
+         repo-dir (config "OCFL-ROOT")]
+     (run port repo-dir))))
