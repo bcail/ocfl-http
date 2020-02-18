@@ -1,6 +1,7 @@
 (ns ocfl-http.handler-test
   (:require [clojure.test :refer :all]
             [ring.mock.request :as mock]
+            [clojure.data.json :as json]
             [ocfl-http.handler :refer :all]
             [ocfl-http.ocfllib :refer [REPO_DIR add-path-to-object get-file]]
             [ocfl-http.testutils :refer [create-tmp-dir delete-dir commitInfo]]
@@ -64,7 +65,7 @@
         (let [response (test-app (mock/request :get "/testsuite:1"))
               headers (:headers response)]
           (is (= (:status response) 200))
-          (is (= (:body response) "file")))
+          (is (= (json/read-str (:body response)) {"files" ["file"]})))
       (delete-dir repoDir)))))
 
 (deftest test-get-file

@@ -7,6 +7,7 @@
                  [ring/ring-defaults "0.3.2"]
                  [edu.wisc.library.ocfl/ocfl-java-core "0.0.2-SNAPSHOT"]
                  [edu.wisc.library.ocfl/ocfl-java-api "0.0.2-SNAPSHOT"]
+                 [org.clojure/data.json "1.0.0"]
                  ]
   :repositories [["sonatype" {:url "https://oss.sonatype.org/content/repositories/snapshots"}]]
   :plugins [[lein-ring "0.12.5"]]

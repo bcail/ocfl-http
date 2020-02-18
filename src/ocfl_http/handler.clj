@@ -4,6 +4,7 @@
             [compojure.response :refer [render]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.util.response :as response]
+            [clojure.data.json :as json]
             [ocfl-http.ocfllib :refer [object-exists list-files get-file write-file-to-object update-file-in-object]]))
 
 (defn show-object
@@ -12,7 +13,7 @@
     (if (object-exists objectId)
       {:status 200
        :headers {}
-       :body (clojure.string/join ", " (list-files objectId))}
+       :body (json/write-str {"files" (list-files objectId)})}
       {:status 404
        :headers {}})))
 
