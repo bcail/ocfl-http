@@ -70,8 +70,6 @@
 
 ;disable security for now
 ;https://stackoverflow.com/a/54585933
-;(def app
-;  (wrap-defaults app-routes site-defaults))
 (def app
   (wrap-defaults app-routes (assoc site-defaults :security false)))
 

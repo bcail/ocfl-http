@@ -16,11 +16,6 @@
       (add-path-to-object "testsuite:1" filePath commitInfo)
       (delete-dir (str contentDir)))))
 
-;create test app w/ security disabled for testing POST requests
-;https://stackoverflow.com/a/54585933
-(def test-app
-  (wrap-defaults app-routes (assoc site-defaults :security false)))
-
 (deftest test-static-routes
   (testing "main route"
     (let [response (app (mock/request :get "/"))]
@@ -36,7 +31,7 @@
     (let [repoDir (create-tmp-dir)]
       (do
         (dosync (ref-set REPO_DIR repoDir))
-        (let [response (test-app (-> (mock/request :post "/testsuite:1/file1")
+        (let [response (app (-> (mock/request :post "/testsuite:1/file1")
                                      (mock/body "content")))]
           (is (= (:status response) 201))
           (is (= (:body response) ""))
@@ -49,7 +44,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (test-app (-> (mock/request :put "/testsuite:1/file")
+        (let [response (app (-> (mock/request :put "/testsuite:1/file")
                                      (mock/body "updated contents")))]
           (is (= (:status response) 201))
           (is (= (:body response) ""))
@@ -62,7 +57,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (test-app (mock/request :get "/testsuite:1"))
+        (let [response (app (mock/request :get "/testsuite:1"))
               headers (:headers response)]
           (is (= (:status response) 200))
           (is (= (json/read-str (:body response)) {"files" ["file"]})))
@@ -72,7 +67,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (test-app (mock/request :get "/testsuite:not-found"))]
+        (let [response (app (mock/request :get "/testsuite:not-found"))]
           (is (= (:status response) 404))
           (is (= (:body response) "object testsuite:not-found not found")))
         (delete-dir repoDir)))))
@@ -83,7 +78,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (test-app (mock/request :get "/testsuite:1/file"))
+        (let [response (app (mock/request :get "/testsuite:1/file"))
               headers (:headers response)]
           (is (= (:status response) 200))
           (is (= (headers "Content-Length") "7"))
@@ -93,7 +88,7 @@
     (let [repoDir (create-tmp-dir)]
       (do
         (dosync (ref-set REPO_DIR repoDir))
-        (let [response (test-app (mock/request :get "/testsuite:not-found/file1.txt"))]
+        (let [response (app (mock/request :get "/testsuite:not-found/file1.txt"))]
           (is (= (:status response) 404))
           (is (= (:body response) "object testsuite:not-found not found"))
         (delete-dir repoDir)))))
@@ -102,7 +97,7 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (test-app (mock/request :get "/testsuite:1/non-existent-file"))]
+        (let [response (app (mock/request :get "/testsuite:1/non-existent-file"))]
           (is (= (:status response) 404))
           (is (= (:body response) "file non-existent-file not found"))
           (delete-dir repoDir))))))
