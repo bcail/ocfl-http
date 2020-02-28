@@ -18,13 +18,23 @@
        :headers {}
        :body (json/write-str {"files" (list-files objectId)})}
       {:status 404
-       :headers {}})))
+       :headers {}
+       :body (str "object " objectId " not found")})))
 
 (defn serve-file
   [request]
-  (let [objectId (:objectid (:params request))
-        path (:path (:params request))]
-     (render (get-file objectId path) request)))
+  (let [objectId (:objectid (:params request))]
+    (if (object-exists objectId)
+      (let [path (:path (:params request))
+            file (get-file objectId path)]
+        (if (nil? file)
+          {:status 404
+           :headers {}
+           :body (str "file " path " not found")}
+          (render file request)))
+      {:status 404
+       :headers {}
+       :body (str "object " objectId " not found")})))
 
 (defn ingest
   [request]

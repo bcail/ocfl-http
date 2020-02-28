@@ -98,13 +98,16 @@
 
 (defn get-file
   [objectId path]
-  (let [repoDir (get-repo-dir)
-        repo (get-repo repoDir)]
-    (do
-      (let [object (.getObject repo (ObjectVersionId/head objectId))
-            file (.getFile object path)
-            fullPath (get-path-to-file repoDir file)]
-        (clojure.java.io/file (str fullPath))))))
+  (if (object-exists objectId)
+    (let [repoDir (get-repo-dir)
+          repo (get-repo repoDir)]
+      (do
+        (let [object (.getObject repo (ObjectVersionId/head objectId))
+              file (.getFile object path)]
+          (if (nil? file)
+            nil
+            (clojure.java.io/file (str (get-path-to-file repoDir file)))))))
+    nil))
 
 (defn get-file-content-versions
   [objectId path]

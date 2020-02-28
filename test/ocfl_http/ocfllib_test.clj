@@ -59,6 +59,20 @@
         (is (= "updated contents" (slurp (get-file "o1" "file"))))
         (delete-dir tmpDir)))))
 
+(deftest test-get-file
+  (testing "get-file"
+    (let [tmpDir (create-tmp-dir)
+          repoDir (str tmpDir java.io.File/separator "ocfl_root")
+          pathToFile (str tmpDir java.io.File/separator "file.txt")]
+      (do
+        (dosync (ref-set REPO_DIR repoDir))
+        (spit (clojure.java.io/file pathToFile) "content")
+        (add-path-to-object "o1" pathToFile commitInfo)
+        (is (= "content" (slurp (get-file "o1" "file.txt"))))
+        (is (= nil (get-file "o1" "non-existent.txt")))
+        (is (= nil (get-file "non-existent" "file.txt")))
+        (delete-dir tmpDir)))))
+
 (deftest test-get-previous-version-of-file
   (testing "previous version"
     (let [tmpDir (create-tmp-dir)
