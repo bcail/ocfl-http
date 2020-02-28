@@ -10,6 +10,12 @@
             [ocfl-http.ocfllib :refer [REPO_DIR object-exists list-files get-object get-file write-file-to-object update-file-in-object]])
   (:gen-class))
 
+(defn json-response
+  [data]
+  {:status 200
+   :headers {"Content-Type" "application/json"}
+   :body (json/write-str data)})
+
 (defn show-object
   [request]
   (let [objectId (:objectid (:params request))
@@ -18,9 +24,7 @@
       {:status 404
        :headers {}
        :body (str "object " objectId " not found")}
-      {:status 200
-       :headers {}
-       :body (json/write-str {"files" (list-files objectId)})})))
+      (json-response {"files" (list-files objectId)}))))
 
 (defn serve-file
   [request]
@@ -66,7 +70,7 @@
      :headers {}}))
 
 (defroutes app-routes
-  (GET "/" [] "OCFL HTTP")
+  (GET "/" [] (json-response {"OCFL REPO" {"root" @REPO_DIR}}))
   (GET "/:objectid" [] show-object)
   (GET "/:objectid/:path" [] serve-file)
   (POST "/:objectid/:path" [] ingest)

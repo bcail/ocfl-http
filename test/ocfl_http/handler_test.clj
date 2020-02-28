@@ -18,9 +18,12 @@
 
 (deftest test-static-routes
   (testing "main route"
-    (let [response (app (mock/request :get "/"))]
-      (is (= (:status response) 200))
-      (is (= (:body response) "OCFL HTTP"))))
+    (let [repoDir (create-tmp-dir)]
+      (do
+        (dosync (ref-set REPO_DIR repoDir))
+        (let [response (app (mock/request :get "/"))]
+          (is (= (:status response) 200))
+          (is (= (json/read-str (:body response)) {"OCFL REPO" {"root" repoDir}}))))))
 
   (testing "not-found route"
     (let [response (app (mock/request :get "/invalid"))]
