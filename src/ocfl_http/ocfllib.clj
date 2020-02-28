@@ -96,13 +96,20 @@
   (let [relativePath (.getStorageRelativePath fileDetail)]
     (Path/of repoDir (into-array String [(str relativePath)]))))
 
+(defn get-object
+  [objectId]
+  (if (object-exists objectId)
+    (let [repo (get-repo)]
+      (.getObject repo (ObjectVersionId/head objectId)))
+    nil))
+
 (defn get-file
   [objectId path]
   (if (object-exists objectId)
     (let [repoDir (get-repo-dir)
           repo (get-repo repoDir)]
       (do
-        (let [object (.getObject repo (ObjectVersionId/head objectId))
+        (let [object (get-object objectId)
               file (.getFile object path)]
           (if (nil? file)
             nil

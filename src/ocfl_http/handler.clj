@@ -7,34 +7,36 @@
             [ring.adapter.jetty :refer [run-jetty]]
             [clojure.data.json :as json]
             [clojure.edn :as edn]
-            [ocfl-http.ocfllib :refer [REPO_DIR object-exists list-files get-file write-file-to-object update-file-in-object]])
+            [ocfl-http.ocfllib :refer [REPO_DIR object-exists list-files get-object get-file write-file-to-object update-file-in-object]])
   (:gen-class))
 
 (defn show-object
   [request]
-  (let [objectId (:objectid (:params request))]
-    (if (object-exists objectId)
-      {:status 200
-       :headers {}
-       :body (json/write-str {"files" (list-files objectId)})}
+  (let [objectId (:objectid (:params request))
+        object (get-object objectId)]
+    (if (nil? object)
       {:status 404
        :headers {}
-       :body (str "object " objectId " not found")})))
+       :body (str "object " objectId " not found")}
+      {:status 200
+       :headers {}
+       :body (json/write-str {"files" (list-files objectId)})})))
 
 (defn serve-file
   [request]
-  (let [objectId (:objectid (:params request))]
-    (if (object-exists objectId)
+  (let [objectId (:objectid (:params request))
+        object (get-object objectId)]
+    (if (nil? object)
+      {:status 404
+       :headers {}
+       :body (str "object " objectId " not found")}
       (let [path (:path (:params request))
             file (get-file objectId path)]
         (if (nil? file)
           {:status 404
            :headers {}
            :body (str "file " path " not found")}
-          (render file request)))
-      {:status 404
-       :headers {}
-       :body (str "object " objectId " not found")})))
+          (render file request))))))
 
 (defn ingest
   [request]

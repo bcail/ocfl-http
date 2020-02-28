@@ -59,6 +59,18 @@
         (is (= "updated contents" (slurp (get-file "o1" "file"))))
         (delete-dir tmpDir)))))
 
+(deftest test-get-object
+  (testing "get-object"
+    (let [tmpDir (create-tmp-dir)
+          repoDir (str tmpDir java.io.File/separator "ocfl_root")
+          pathToFile (str tmpDir java.io.File/separator "file.txt")]
+      (do
+        (dosync (ref-set REPO_DIR repoDir))
+        (spit (clojure.java.io/file pathToFile) "content")
+        (add-path-to-object "o1" pathToFile commitInfo)
+        (is (= "o1" (.getObjectId (get-object "o1"))))
+        (delete-dir tmpDir)))))
+
 (deftest test-get-file
   (testing "get-file"
     (let [tmpDir (create-tmp-dir)
