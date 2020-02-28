@@ -36,6 +36,11 @@
           (is (= (:status response) 201))
           (is (= (:body response) ""))
           (is (= (slurp (get-file "testsuite:1" "file1")) "content")))
+        ;now verify that a post to an existing file fails
+        (let [response (app (-> (mock/request :post "/testsuite:1/file1")
+                                (mock/body "content")))]
+          (is (= (:status response) 409))
+          (is (= (:body response) "testsuite:1/file1 already exists. Use PUT to overwrite.")))
         (delete-dir repoDir)))))
 
 (deftest test-update

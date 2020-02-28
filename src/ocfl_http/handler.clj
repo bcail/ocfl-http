@@ -40,14 +40,19 @@
 
 (defn ingest
   [request]
-  (do
-    (let [objectId (:objectid (:params request))
-          commitInfo {"name" "A" "address" "fake address" "message" "test message"}
-          path (:path (:params request))
-          inputStream (:body request)]
-      (write-file-to-object objectId inputStream path commitInfo))
-    {:status 201
-     :headers {}}))
+  (let [objectId (:objectid (:params request))
+        commitInfo {"name" "A" "address" "fake address" "message" "test message"}
+        path (:path (:params request))
+        inputStream (:body request)]
+    (try
+      (do
+        (write-file-to-object objectId inputStream path commitInfo)
+        {:status 201
+         :headers {}})
+      ;is there a way to not have to know about the ocfl-java exception here?
+      (catch edu.wisc.library.ocfl.api.exception.OverwriteException exc
+        {:status 409
+         :body (str objectId "/" path " already exists. Use PUT to overwrite.")}))))
 
 (defn update-file
   [request]
