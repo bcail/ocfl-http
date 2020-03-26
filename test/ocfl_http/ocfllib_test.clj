@@ -95,6 +95,9 @@
           (write-file-to-object "o1" xin "file" commitInfo))
         (with-open [xin (clojure.java.io/input-stream (.getBytes "updated contents"))]
           (update-file-in-object "o1" xin "file" commitInfo))
-        (is (= ["updated contents" "initial contents"] (get-file-content-versions "o1" "file")))
+        (let [content-versions (get-file-versions "o1" "file")]
+          (is (=
+                (map #(slurp %) content-versions)
+                ["updated contents" "initial contents"])))
         (delete-dir tmpDir)))))
 

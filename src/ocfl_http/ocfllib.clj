@@ -116,11 +116,18 @@
             (clojure.java.io/file (str (get-path-to-file repoDir file)))))))
     nil))
 
-(defn get-file-content-versions
+(defn- get-file-from-version-details
+  [versionDetails repoDir path]
+  (clojure.java.io/file (str (get-path-to-file repoDir (.getFile versionDetails path)))))
+
+(defn get-file-versions
   [objectId path]
   (let [repoDir (get-repo-dir)
         repo (get-repo repoDir)
         objectDetails (.describeObject repo objectId)
         versionMap (.getVersionMap objectDetails)]
-      (reverse (map #(slurp (clojure.java.io/file (str (get-path-to-file repoDir (.getFile % path))))) (.values versionMap)))))
+      (reverse
+        (map
+          #(get-file-from-version-details % repoDir path)
+             (.values versionMap)))))
 
