@@ -6,7 +6,6 @@
             [ring.util.response :as response]
             [ring.adapter.jetty :refer [run-jetty]]
             [clojure.data.json :as json]
-            [clojure.edn :as edn]
             [ocfl-http.ocfllib :refer [REPO_DIR object-exists list-files get-object get-file write-file-to-object update-file-in-object]])
   (:gen-class))
 
@@ -84,7 +83,7 @@
 
 (defn- get-config
   [file-path]
-  (edn/read-string (slurp file-path)))
+  (json/read-str (slurp file-path)))
 
 (defn- run
   [port-number repo-dir]
