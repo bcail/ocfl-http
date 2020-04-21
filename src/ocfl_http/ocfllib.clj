@@ -97,37 +97,39 @@
     (Path/of repoDir (into-array String [(str relativePath)]))))
 
 (defn get-object
-  [objectId]
-  (if (object-exists objectId)
-    (let [repo (get-repo)]
-      (.getObject repo (ObjectVersionId/head objectId)))
-    nil))
+  ([objectId] (get-object objectId nil))
+  ([objectId versionId]
+    (if (object-exists objectId)
+      (let [repo (get-repo)]
+        (if (nil? versionId)
+          (.getObject repo (ObjectVersionId/head objectId))
+          (.getObject repo (ObjectVersionId/version objectId versionId))))
+      nil)))
 
 (defn get-file
-  [objectId path]
-  (if (object-exists objectId)
-    (let [repoDir (get-repo-dir)
-          repo (get-repo repoDir)]
-      (do
-        (let [object (get-object objectId)
-              file (.getFile object path)]
-          (if (nil? file)
-            nil
-            (clojure.java.io/file (str (get-path-to-file repoDir file)))))))
-    nil))
+  ([objectId path] (get-file objectId nil path))
+  ([objectId version path]
+    (if (object-exists objectId)
+      (let [repoDir (get-repo-dir)
+            repo (get-repo repoDir)]
+        (do
+          (let [object (get-object objectId version)
+                file (.getFile object path)]
+            (if (nil? file)
+              nil
+              (clojure.java.io/file (str (get-path-to-file repoDir file)))))))
+      nil)))
 
-(defn- get-file-from-version-details
-  [versionDetails repoDir path]
-  (clojure.java.io/file (str (get-path-to-file repoDir (.getFile versionDetails path)))))
+(defn- get-file-from-fileChange
+  [objectId fileChange path]
+  (get-file objectId (str (.getVersionId fileChange)) path))
 
 (defn get-file-versions
   [objectId path]
-  (let [repoDir (get-repo-dir)
-        repo (get-repo repoDir)
-        objectDetails (.describeObject repo objectId)
-        versionMap (.getVersionMap objectDetails)]
-      (reverse
-        (map
-          #(get-file-from-version-details % repoDir path)
-             (.values versionMap)))))
+  (let [repo (get-repo)
+        fileChangeHistory (.fileChangeHistory repo objectId path)
+        fileChanges (.getFileChanges fileChangeHistory)]
+    (reverse
+      (map
+        #(get-file-from-fileChange objectId % path) fileChanges))))
 

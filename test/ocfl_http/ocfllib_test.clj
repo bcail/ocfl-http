@@ -63,12 +63,16 @@
   (testing "get-object"
     (let [tmpDir (create-tmp-dir)
           repoDir (str tmpDir java.io.File/separator "ocfl_root")
-          pathToFile (str tmpDir java.io.File/separator "file.txt")]
+          pathToFile (str tmpDir java.io.File/separator "file.txt")
+          pathToFile2 (str tmpDir java.io.File/separator "file2.txt")]
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (spit (clojure.java.io/file pathToFile) "content")
+        (spit (clojure.java.io/file pathToFile2) "content 2")
         (add-path-to-object "o1" pathToFile commitInfo)
-        (is (= "o1" (.getObjectId (get-object "o1"))))
+        (add-path-to-object "o1" pathToFile2 commitInfo)
+        (is (= "v2" (str (.getVersionId (get-object "o1")))))
+        (is (= "v1" (str (.getVersionId (get-object "o1" "v1")))))
         (delete-dir tmpDir)))))
 
 (deftest test-get-file
@@ -83,9 +87,13 @@
         (is (= "content" (slurp (get-file "o1" "file.txt"))))
         (is (= nil (get-file "o1" "non-existent.txt")))
         (is (= nil (get-file "non-existent" "file.txt")))
+        (with-open [xin (clojure.java.io/input-stream (.getBytes "updated contents"))]
+          (update-file-in-object "o1" xin "file.txt" commitInfo))
+        (is (= "updated contents" (slurp (get-file "o1" "file.txt"))))
+        (is (= "content" (slurp (get-file "o1" "v1" "file.txt"))))
         (delete-dir tmpDir)))))
 
-(deftest test-get-previous-version-of-file
+(deftest test-get-file-versions
   (testing "previous version"
     (let [tmpDir (create-tmp-dir)
           repoDir (str tmpDir java.io.File/separator "ocfl_root")]
@@ -93,6 +101,8 @@
         (dosync (ref-set REPO_DIR repoDir))
         (with-open [xin (clojure.java.io/input-stream (.getBytes "initial contents"))]
           (write-file-to-object "o1" xin "file" commitInfo))
+        (with-open [xin (clojure.java.io/input-stream (.getBytes "random"))]
+          (write-file-to-object "o1" xin "other_file" commitInfo))
         (with-open [xin (clojure.java.io/input-stream (.getBytes "updated contents"))]
           (update-file-in-object "o1" xin "file" commitInfo))
         (let [content-versions (get-file-versions "o1" "file")]
