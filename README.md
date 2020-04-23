@@ -1,6 +1,10 @@
 # ocfl-http
 
-HTTP interface for OCFL repository.
+HTTP interface for an OCFL repository, using [ocfl-java][] for reading and writing the OCFL data.
+
+Note: this is a side-project that is not being used in production.
+
+[ocfl-java]: https://github.com/UW-Madison-Library/ocfl-java
 
 ## Prerequisites
 
