@@ -23,7 +23,9 @@
       {:status 404
        :headers {}
        :body (str "object " objectId " not found")}
-      (json-response {"files" (list-files objectId)}))))
+      (let [files (list-files objectId)
+            files_info (reduce #(assoc %1 %2 {}) {} files)]
+        (json-response {"files" files_info})))))
 
 (defn serve-file
   [request]

@@ -68,7 +68,7 @@
         (let [response (app (mock/request :get "/testsuite:1"))
               headers (:headers response)]
           (is (= (:status response) 200))
-          (is (= (json/read-str (:body response)) {"files" ["file"]})))
+          (is (= (json/read-str (:body response)) {"files" {"file" {}}})))
       (delete-dir repoDir))))
   (testing "object not found"
     (let [repoDir (create-tmp-dir)]
