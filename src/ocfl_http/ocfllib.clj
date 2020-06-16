@@ -33,6 +33,13 @@
       (.repositoryRoot storageBuilder repoRootPath)
       (.build storageBuilder))))
 
+(defn- init-repo-builder
+  [layoutConfig storage stagingDir]
+  (doto (OcflRepositoryBuilder.)
+    (.layoutConfig layoutConfig)
+    (.storage storage)
+    (.workDir stagingDir)))
+
 (defn get-repo
   "initializes repo if repoRootDir doesn't already contain a repo"
   ([] (get-repo (get-repo-dir)))
@@ -41,12 +48,8 @@
           stagingDir (get-default-tmp-dir)
           layoutConfig (DefaultLayoutConfig/nTupleHashConfig)
           storage (file-system-storage repoRootPath)
-          repoBuilder (new OcflRepositoryBuilder)]
-      (do
-        (.layoutConfig repoBuilder layoutConfig)
-        (.storage repoBuilder storage)
-        (.workDir repoBuilder stagingDir)
-        (.build repoBuilder)))))
+          repoBuilder (init-repo-builder layoutConfig storage stagingDir)]
+      (.build repoBuilder))))
 
 (defn object-exists
   [objectId]
