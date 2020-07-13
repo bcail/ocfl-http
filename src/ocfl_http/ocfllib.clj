@@ -1,8 +1,8 @@
 (ns ocfl-http.ocfllib)
 (import '(edu.wisc.library.ocfl.core OcflRepositoryBuilder)
         '(edu.wisc.library.ocfl.core.storage.filesystem FileSystemOcflStorage)
-        '(edu.wisc.library.ocfl.core.extension.layout.config DefaultLayoutConfig)
-        '(edu.wisc.library.ocfl.api.model CommitInfo ObjectVersionId User)
+        '(edu.wisc.library.ocfl.core.extension.storage.layout.config HashedTruncatedNTupleIdConfig)
+        '(edu.wisc.library.ocfl.api.model VersionInfo ObjectVersionId)
         '(edu.wisc.library.ocfl.api OcflOption OcflObjectUpdater)
         '(java.nio.file Files Path))
 
@@ -23,8 +23,9 @@
 
 (defn commit-info
   [{userName "name" address "address" message "message"}]
-  (let [user (.setAddress (.setName (new User) userName) address)]
-    (.setUser (.setMessage (new CommitInfo) message) user)))
+  (doto (VersionInfo.)
+    (.setUser userName address)
+    (.setMessage message)))
 
 (defn- file-system-storage
   [repoRootPath]
@@ -46,7 +47,7 @@
   ([repoRootDir]
     (let [repoRootPath (str-to-path repoRootDir)
           stagingDir (get-default-tmp-dir)
-          layoutConfig (DefaultLayoutConfig/nTupleHashConfig)
+          layoutConfig (HashedTruncatedNTupleIdConfig.)
           storage (file-system-storage repoRootPath)
           repoBuilder (init-repo-builder layoutConfig storage stagingDir)]
       (.build repoBuilder))))
