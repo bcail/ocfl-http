@@ -21,8 +21,8 @@
   (let [tmp (System/getProperty "java.io.tmpdir")]
     (str-to-path tmp)))
 
-(defn commit-info
-  [{userName "name" address "address" message "message"}]
+(defn- version-info
+  [message {userName :name address :address}]
   (doto (VersionInfo.)
     (.setUser userName address)
     (.setMessage message)))
@@ -59,31 +59,31 @@
       true)))
 
 (defn write-file-to-object
-  [objectId inputStream path commitInfo]
+  [objectId inputStream path message user]
   (let [repo (get-repo)
         options (into-array OcflOption [])
         consumer (reify java.util.function.Consumer
                    (accept [OcflObjectUpdater updater]
                      (.writeFile updater inputStream path options)))]
-    (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
+    (.updateObject repo (ObjectVersionId/head objectId) (version-info message user) consumer)))
 
 (defn update-file-in-object
-  [objectId inputStream path commitInfo]
+  [objectId inputStream path message user]
   (let [repo (get-repo)
         options (into-array OcflOption [OcflOption/OVERWRITE])
         consumer (reify java.util.function.Consumer
                    (accept [OcflObjectUpdater updater]
                      (.writeFile updater inputStream path options)))]
-    (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
+    (.updateObject repo (ObjectVersionId/head objectId) (version-info message user) consumer)))
 
 (defn add-path-to-object
-  [objectId pathToSourceFile commitInfo]
+  [objectId pathToSourceFile message user]
   (let [repo (get-repo)
         options (into-array OcflOption [])
         consumer (reify java.util.function.Consumer
                        (accept [OcflObjectUpdater updater]
                           (.addPath updater (str-to-path pathToSourceFile) (.getName (clojure.java.io/as-file pathToSourceFile)) options)))]
-    (.updateObject repo (ObjectVersionId/head objectId) (commit-info commitInfo) consumer)))
+    (.updateObject repo (ObjectVersionId/head objectId) (version-info message user) consumer)))
 
 (defn list-files
   [objectId]

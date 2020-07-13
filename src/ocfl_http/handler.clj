@@ -46,12 +46,12 @@
 (defn ingest
   [request]
   (let [objectId (:objectid (:params request))
-        commitInfo {"name" "A" "address" "fake address" "message" "test message"}
+        user {:name "A" :address "fake address"}
         path (:path (:params request))
         inputStream (:body request)]
     (try
       (do
-        (write-file-to-object objectId inputStream path commitInfo)
+        (write-file-to-object objectId inputStream path "ingest file" user)
         {:status 201
          :headers {}})
       ;is there a way to not have to know about the ocfl-java exception here?
@@ -63,10 +63,10 @@
   [request]
   (do
     (let [objectId (:objectid (:params request))
-          commitInfo {"name" "A" "address" "fake address" "message" "test message"}
+          user {:name "A" :address "fake address"}
           path (:path (:params request))
           inputStream (:body request)]
-      (update-file-in-object objectId inputStream path commitInfo))
+      (update-file-in-object objectId inputStream path "update file" user))
     {:status 201
      :headers {}}))
 

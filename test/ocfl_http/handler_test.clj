@@ -4,7 +4,7 @@
             [clojure.data.json :as json]
             [ocfl-http.handler :refer :all]
             [ocfl-http.ocfllib :refer [REPO_DIR add-path-to-object get-file]]
-            [ocfl-http.testutils :refer [create-tmp-dir delete-dir commitInfo]]
+            [ocfl-http.testutils :refer [create-tmp-dir delete-dir user]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
 
 (defn add-test-object
@@ -13,7 +13,7 @@
         filePath (str contentDir "/file")]
     (do
       (spit (clojure.java.io/file filePath) "content")
-      (add-path-to-object "testsuite:1" filePath commitInfo)
+      (add-path-to-object "testsuite:1" filePath "add file" user)
       (delete-dir (str contentDir)))))
 
 (deftest test-static-routes

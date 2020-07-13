@@ -2,7 +2,7 @@
 (import '(java.nio.file Files)
         '(java.nio.file.attribute FileAttribute))
 
-(def commitInfo {"name" "A" "address" "fake address" "message" "test message"})
+(def user {:name "A" :address "fake address"})
 
 (defn create-tmp-dir
   []
