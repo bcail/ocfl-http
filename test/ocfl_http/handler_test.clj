@@ -3,7 +3,7 @@
             [ring.mock.request :as mock]
             [clojure.data.json :as json]
             [ocfl-http.handler :refer :all]
-            [ocfl-http.ocfllib :refer [REPO_DIR add-path-to-object get-file]]
+            [ocfl-http.ocfllib :refer [REPO_DIR add-path-to-object get-object get-file]]
             [ocfl-http.testutils :refer [create-tmp-dir delete-dir user]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
 
@@ -34,11 +34,15 @@
     (let [repoDir (create-tmp-dir)]
       (do
         (dosync (ref-set REPO_DIR repoDir))
-        (let [response (app (-> (mock/request :post "/testsuite:1/file1")
+        (let [response (app (-> (mock/request :post "/testsuite:1/file1?message=adding%20file1")
                                      (mock/body "content")))]
           (is (= (:status response) 201))
           (is (= (:body response) ""))
-          (is (= (slurp (get-file "testsuite:1" "file1")) "content")))
+          (is (= (slurp (get-file "testsuite:1" "file1")) "content"))
+          (let [object (get-object "testsuite:1")
+                versionInfo (.getVersionInfo object)
+                message (.getMessage versionInfo)]
+            (is (= message "adding file1"))))
         ;now verify that a post to an existing file fails
         (let [response (app (-> (mock/request :post "/testsuite:1/file1")
                                 (mock/body "content")))]
@@ -52,12 +56,16 @@
       (do
         (dosync (ref-set REPO_DIR repoDir))
         (add-test-object)
-        (let [response (app (-> (mock/request :put "/testsuite:1/file")
+        (let [response (app (-> (mock/request :put "/testsuite:1/file?message=updating%20file")
                                      (mock/body "updated contents")))]
           (is (= (:status response) 201))
           (is (= (:body response) ""))
           (is (= (slurp (get-file "testsuite:1" "file")) "updated contents"))
-        (delete-dir repoDir))))))
+          (let [object (get-object "testsuite:1")
+                versionInfo (.getVersionInfo object)
+                message (.getMessage versionInfo)]
+            (is (= message "updating file"))))
+        (delete-dir repoDir)))))
 
 (deftest test-show-object
   (testing "get object info"

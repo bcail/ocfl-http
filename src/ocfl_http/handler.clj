@@ -45,13 +45,15 @@
 
 (defn ingest
   [request]
-  (let [objectId (:objectid (:params request))
+  (let [params (:params request)
+        objectId (:objectid params)
         user {:name "A" :address "fake address"}
-        path (:path (:params request))
+        path (:path params)
+        message (get params :message (str "ingest " path))
         inputStream (:body request)]
     (try
       (do
-        (write-file-to-object objectId inputStream path "ingest file" user)
+        (write-file-to-object objectId inputStream path message user)
         {:status 201
          :headers {}})
       ;is there a way to not have to know about the ocfl-java exception here?
@@ -62,11 +64,13 @@
 (defn update-file
   [request]
   (do
-    (let [objectId (:objectid (:params request))
+    (let [params (:params request)
+          objectId (:objectid params)
           user {:name "A" :address "fake address"}
-          path (:path (:params request))
+          path (:path params)
+          message (get params :message (str "update " path))
           inputStream (:body request)]
-      (update-file-in-object objectId inputStream path "update file" user))
+      (update-file-in-object objectId inputStream path message user))
     {:status 201
      :headers {}}))
 
