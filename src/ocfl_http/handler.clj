@@ -9,6 +9,9 @@
             [ocfl-http.ocfllib :refer [REPO_DIR object-exists list-files get-object get-file write-file-to-object update-file-in-object]])
   (:gen-class))
 
+(def userName "User1")
+(def userAddress "fake address")
+
 (defn json-response
   [data]
   {:status 200
@@ -47,7 +50,7 @@
   [request]
   (let [params (:params request)
         objectId (:objectid params)
-        user {:name "A" :address "fake address"}
+        user {:name userName :address userAddress}
         path (:path params)
         message (get params :message (str "ingest " path))
         inputStream (:body request)]
@@ -66,7 +69,7 @@
   (do
     (let [params (:params request)
           objectId (:objectid params)
-          user {:name "A" :address "fake address"}
+          user {:name userName :address userAddress}
           path (:path params)
           message (get params :message (str "update " path))
           inputStream (:body request)]

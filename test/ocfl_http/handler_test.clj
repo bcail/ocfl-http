@@ -41,8 +41,10 @@
           (is (= (slurp (get-file "testsuite:1" "file1")) "content"))
           (let [object (get-object "testsuite:1")
                 versionInfo (.getVersionInfo object)
+                user (.getUser versionInfo)
                 message (.getMessage versionInfo)]
-            (is (= message "adding file1"))))
+            (is (= message "adding file1"))
+            (is (= (.getName user) "User1"))))
         ;now verify that a post to an existing file fails
         (let [response (app (-> (mock/request :post "/testsuite:1/file1")
                                 (mock/body "content")))]
