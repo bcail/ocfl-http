@@ -46,9 +46,10 @@
            :body (str "file " path " not found")}
           (render file request))))))
 
-(defn ingest
+(defn upload-file
   [request]
   (let [params (:params request)
+        method (:request-method request)
         objectId (:objectid params)
         userName (get params :username defaultUserName)
         userAddress (get params :useraddress defaultUserAddress)
@@ -56,37 +57,28 @@
         path (:path params)
         message (get params :message (str "ingest " path))
         inputStream (:body request)]
-    (try
-      (do
-        (write-file-to-object objectId inputStream path message user)
-        {:status 201
-         :headers {}})
+    (if (= method :post)
+      (try
+        (do
+          (write-file-to-object objectId inputStream path message user)
+          {:status 201
+           :headers {}})
       ;is there a way to not have to know about the ocfl-java exception here?
       (catch edu.wisc.library.ocfl.api.exception.OverwriteException exc
         {:status 409
-         :body (str objectId "/" path " already exists. Use PUT to overwrite.")}))))
-
-(defn update-file
-  [request]
-  (do
-    (let [params (:params request)
-          objectId (:objectid params)
-          userName (get params :username defaultUserName)
-          userAddress (get params :useraddress defaultUserAddress)
-          user {:name userName :address userAddress}
-          path (:path params)
-          message (get params :message (str "update " path))
-          inputStream (:body request)]
-      (update-file-in-object objectId inputStream path message user))
-    {:status 201
-     :headers {}}))
+         :body (str objectId "/" path " already exists. Use PUT to overwrite.")}))
+      ;it's a :put
+      (do
+        (update-file-in-object objectId inputStream path message user)
+        {:status 201
+         :headers {}}))))
 
 (defroutes app-routes
   (GET "/" [] (json-response {"OCFL REPO" {"root" @REPO_DIR}}))
   (GET "/:objectid" [] show-object)
   (GET "/:objectid/:path" [] serve-file)
-  (POST "/:objectid/:path" [] ingest)
-  (PUT "/:objectid/:path" [] update-file)
+  (POST "/:objectid/:path" [] upload-file)
+  (PUT "/:objectid/:path" [] upload-file)
   (route/not-found "Not Found"))
 
 ;disable security for now
