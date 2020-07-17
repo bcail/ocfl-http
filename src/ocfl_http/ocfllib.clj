@@ -4,7 +4,7 @@
         '(edu.wisc.library.ocfl.core.extension.storage.layout.config HashedTruncatedNTupleIdConfig)
         '(edu.wisc.library.ocfl.api.model VersionInfo ObjectVersionId)
         '(edu.wisc.library.ocfl.api OcflOption OcflObjectUpdater)
-        '(java.nio.file Files Path))
+        '(java.nio.file Path))
 
 (def REPO_DIR (ref "/tmp/ocfl-http"))
 
