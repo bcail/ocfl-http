@@ -34,7 +34,7 @@
     (let [repoDir (create-tmp-dir)]
       (do
         (dosync (ref-set REPO_DIR repoDir))
-        (let [response (app (-> (mock/request :post "/testsuite:1/file1?message=adding%20file1")
+        (let [response (app (-> (mock/request :post "/testsuite:1/file1?message=adding%20file1&username=someone&useraddress=someone%40school.edu")
                                      (mock/body "content")))]
           (is (= (:status response) 201))
           (is (= (:body response) ""))
@@ -44,7 +44,8 @@
                 user (.getUser versionInfo)
                 message (.getMessage versionInfo)]
             (is (= message "adding file1"))
-            (is (= (.getName user) "User1"))))
+            (is (= (.getName user) "someone"))
+            (is (= (.getAddress user) "someone@school.edu"))))
         ;now verify that a post to an existing file fails
         (let [response (app (-> (mock/request :post "/testsuite:1/file1")
                                 (mock/body "content")))]
